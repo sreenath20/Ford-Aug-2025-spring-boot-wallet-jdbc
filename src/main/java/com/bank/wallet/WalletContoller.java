@@ -1,6 +1,8 @@
 package com.bank.wallet;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -20,15 +22,19 @@ public class WalletContoller {
     // CRUD on wallet resource
 
     @PostMapping
-    public Wallet registerNewWalletuser(@RequestBody Wallet newWallet) {
+    //@ResponseStatus(HttpStatus.CREATED)
+    // ResponseEntity
+    public ResponseEntity<Wallet> registerNewWalletuser(@RequestBody Wallet newWallet) {
         try {
-            return this.walletService.registerNewUserWallet(newWallet);
+            Wallet wallet = this.walletService.registerNewUserWallet(newWallet);
+            return new ResponseEntity<>(wallet, HttpStatus.CREATED);
+
         } catch (WalletException e) {
             throw new RuntimeException(e);
         }
-
     }
 
+    @ResponseStatus(HttpStatus.ACCEPTED)
     @PatchMapping("/{email}/amount/{amount}")
     public Double addFundsToWalletByEmail(@PathVariable("email") String email, @PathVariable Double amount) {
         try {
@@ -41,11 +47,12 @@ public class WalletContoller {
 
     // handler methods
     @PatchMapping("/amount")
-    public Double withdrawFundsFromWalletByEmailId(@RequestBody WalletDto walletDto) {
+    public Double withdrawFundsFromWalletByEmailId(@RequestBody WalletDto walletDto) throws WalletException {
         try {
             return this.walletService.withdrawFromWalletByEmailId(walletDto.getFromEmailId(), walletDto.getAmount());
         } catch (WalletException e) {
-            throw new RuntimeException(e);
+            // throw new RuntimeException(e);
+            throw e;
         }
     }
 
@@ -57,6 +64,18 @@ public class WalletContoller {
         } catch (WalletException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // @RequestParm
+    // 1. we can default values
+    // 2. we can make parameters optional
+    // demo
+    // localhost:8080/api/v1/wallet?name=ford&amount=555
+
+    @GetMapping
+    public String getInfo(@RequestParam(required = false, name = "name") String userName,
+                          @RequestParam(required = false) String amount) {
+        return "Request param name" + userName + " amount :" + amount;
     }
 
 

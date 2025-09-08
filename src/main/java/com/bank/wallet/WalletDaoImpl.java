@@ -14,11 +14,11 @@ public class WalletDaoImpl implements WalletDao {
 
     private Connection connection;
 
-    public WalletDaoImpl() {
+    public WalletDaoImpl() throws Exception {
         try {
             connection = DriverManager.getConnection("jdbc:h2:file:./data/demo", "sa", "password");
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new Exception(e);
         }
     }
 
