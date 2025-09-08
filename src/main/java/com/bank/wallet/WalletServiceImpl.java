@@ -12,8 +12,14 @@ public class WalletServiceImpl implements WalletService {
 
     // Loose coupling
     // Has - A dependency
-    @Autowired
+    //@Autowired
     private WalletDao walletDao;// Dependency injection  = //new WalletDaoImpl(); // if this object gets crested by spring we call it as inversion of control
+
+    @Autowired
+    public WalletServiceImpl(WalletDao walletDao) {
+        // here handle further customise / validation of wallDao
+        this.walletDao = walletDao;
+    }
 
     @Override
     public Wallet registerNewUserWallet(Wallet newWallet) throws WalletException {
@@ -23,7 +29,7 @@ public class WalletServiceImpl implements WalletService {
             if (foundWallet != null)
                 throw new WalletException("User already exists for email:" + newWallet.getEmail());
             else {  // save wallet to DB
-               return  walletDao.saveWallet(newWallet);
+                return walletDao.saveWallet(newWallet);
 
             }
         } catch (WalletException e) {
@@ -50,7 +56,18 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public Double withdrawFromWalletByEmailId(String emailId, Double amount) throws WalletException {
-        return 0.0;
+        Wallet foundWallet = walletDao.getWalletByEmail(emailId);
+        if (foundWallet == null) {
+            throw new WalletException("Wallet not found for email id:" + emailId);
+
+        } else {
+            Double currentBalance = foundWallet.getBalance();
+            currentBalance -= amount;
+            foundWallet.setBalance(currentBalance);
+            walletDao.updateWalletBalance(foundWallet);
+        }
+        return foundWallet.getBalance();
+
     }
 
     @Override
@@ -65,7 +82,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public Collection<Wallet> getAllCustomerWallets() throws WalletException {
-        return List.of();
+        return this.walletDao.getAllWallets();
     }
 
     @Override
